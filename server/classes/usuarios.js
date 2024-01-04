@@ -26,7 +26,7 @@ class Usuarios {
     }
 
     getPersonasporSala( sala ) {
-        // TODO
+
         let personasEnSala = this.personas.filter( persona => persona.sala === sala );
         return personasEnSala;
     }

@@ -20,11 +20,11 @@ io.on('connection', (client) => {
 
         client.join(data.sala);
 
-        let personas = usuarios.agregarPersona( client.id, data.nombre, data.sala );
+        usuarios.agregarPersona( client.id, data.nombre, data.sala );
 
         client.broadcast.to(data.sala).emit('listaPersonas', usuarios.getPersonasporSala());
 
-        callback( personas );
+        callback( usuarios.getPersonasporSala( data.sala ) );
     });
 
 
@@ -37,12 +37,14 @@ io.on('connection', (client) => {
         client.broadcast.to(personaBorrada.sala).emit( 'listaPersonas', usuarios.getPersonasporSala());
     })
 
-    client.on( 'crearMensaje', ( data ) => {
+    client.on( 'crearMensaje', ( data, callback ) => {
 
         let persona = usuarios.getPersona(client.id);
 
         let mensaje = crearMensaje( persona, data.mensaje );
         client.broadcast.to(persona.sala).emit( 'crearMensaje', mensaje );
+
+        callback( mensaje );
     })
 
     // Mensajes privados
