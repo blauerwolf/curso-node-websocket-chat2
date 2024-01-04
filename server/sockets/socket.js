@@ -11,16 +11,18 @@ io.on('connection', (client) => {
     //console.log('Usuario conectado');
     client.on('entrarChat', (data, callback) => {
 
-        if ( !data.nombre ) {
+        if ( !data.nombre || !data.sala) {
             return callback({
                 error: true,
-                mensaje: 'El nombre es necesario',
+                mensaje: 'El nombre/sala es necesario',
             })
         }
 
-        let personas = usuarios.agregarPersona( client.id, data.nombre );
+        client.join(data.sala);
 
-        client.broadcast.emit('listaPersonas', usuarios.getPersonasporSala());
+        let personas = usuarios.agregarPersona( client.id, data.nombre, data.sala );
+
+        client.broadcast.to(data.sala).emit('listaPersonas', usuarios.getPersonasporSala());
 
         callback( personas );
     });
@@ -31,8 +33,8 @@ io.on('connection', (client) => {
 
         console.log(personaBorrada);
 
-        client.broadcast.emit( 'crearMensaje', { usuario: 'Administrador', mensaje: `${ personaBorrada.nombre } abandonó el chat.`})
-        client.broadcast.emit( 'listaPersonas', usuarios.getPersonasporSala());
+        client.broadcast.to(personaBorrada.sala).emit( 'crearMensaje', { usuario: 'Administrador', mensaje: `${ personaBorrada.nombre } abandonó el chat.`})
+        client.broadcast.to(personaBorrada.sala).emit( 'listaPersonas', usuarios.getPersonasporSala());
     })
 
     client.on( 'crearMensaje', ( data ) => {
@@ -40,7 +42,16 @@ io.on('connection', (client) => {
         let persona = usuarios.getPersona(client.id);
 
         let mensaje = crearMensaje( persona, data.mensaje );
-        client.broadcast.emit( 'crearMensaje', mensaje );
+        client.broadcast.to(persona.sala).emit( 'crearMensaje', mensaje );
+    })
+
+    // Mensajes privados
+    client.on('mensajePrivado', data => {
+
+        let persona = usuarios.getPersona( client.id );
+
+        client.broadcast.to(data.para).emit( 'mensajePrivado', crearMensaje( persona.nombre, data.mensaje ));
+
     })
 
 
