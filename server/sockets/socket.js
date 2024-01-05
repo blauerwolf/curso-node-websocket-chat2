@@ -23,6 +23,7 @@ io.on('connection', (client) => {
         usuarios.agregarPersona( client.id, data.nombre, data.sala );
 
         client.broadcast.to(data.sala).emit('listaPersonas', usuarios.getPersonasporSala());
+        client.broadcast.to(data.sala).emit( 'crearMensaje', { usuario: 'Administrador', mensaje: `${ data.nombre } se unió al chat.`})
 
         callback( usuarios.getPersonasporSala( data.sala ) );
     });
